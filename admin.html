@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survey Dashboard - VibeAtlas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #0066FF;
+        }
+
+        .responses-table {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-header h2 {
+            color: #333;
+        }
+
+        .export-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .export-btn:hover {
+            background: #218838;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            color: #555;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-high {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-low {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .filter-select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .tab-btn.active {
+            background: #0066FF;
+            color: white;
+            border-color: #0066FF;
+        }
+
+        .conversation-view {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .message.user {
+            background: #e3f2fd;
+            margin-left: 40px;
+        }
+
+        .message.ai {
+            background: #f5f5f5;
+            margin-right: 40px;
+        }
+
+        .message-label {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Survey Dashboard</h1>
+
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Responses</div>
+                <div class="stat-value" id="totalResponses">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Completion Rate</div>
+                <div class="stat-value" id="completionRate">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Avg Interest Rating</div>
+                <div class="stat-value" id="avgInterest">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Median Bargain Price</div>
+                <div class="stat-value" id="medianPrice">-</div>
+            </div>
+        </div>
+
+        <div class="tab-buttons">
+            <button class="tab-btn active" onclick="showTab('overview')">Overview</button>
+            <button class="tab-btn" onclick="showTab('responses')">All Responses</button>
+            <button class="tab-btn" onclick="showTab('pricing')">Pricing Analysis</button>
+        </div>
+
+        <div id="overviewTab">
+            <div class="responses-table">
+                <div class="table-header">
+                    <h2>Recent Responses</h2>
+                    <button class="export-btn" onclick="exportToCSV()">Export CSV</button>
+                </div>
+                <div id="loading" class="loading">Loading responses...</div>
+                <div id="tableContainer" style="display: none;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Tools</th>
+                                <th>Role</th>
+                                <th>Interest</th>
+                                <th>Top Priority</th>
+                                <th>Commitment</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="responsesTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="responsesTab" style="display: none;">
+            <!-- Full response details -->
+        </div>
+
+        <div id="pricingTab" style="display: none;">
+            <!-- Van Westendorp analysis -->
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://rosnhltrmvtlnekqbjos.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJvc25obHRybXZ0bG5la3Fiam9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2NDI5OTgsImV4cCI6MjA3NzIxODk5OH0.JSCqo0J7uncLXH88LhXBbPd2YWlkRu0rDW59t-INYO0';
+
+        let allResponses = [];
+
+        async function fetchResponses() {
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/survey_responses?select=*&order=created_at.desc&limit=100`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch responses');
+                }
+
+                allResponses = await response.json();
+                displayStats();
+                displayTable();
+            } catch (error) {
+                document.getElementById('error').textContent = `Error: ${error.message}`;
+                document.getElementById('error').style.display = 'block';
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('tableContainer').style.display = 'block';
+            }
+        }
+
+        function displayStats() {
+            const total = allResponses.length;
+            document.getElementById('totalResponses').textContent = total;
+
+            // Calculate completion rate (those who reached the end)
+            const completed = allResponses.filter(r => r.email || r.commitment_level).length;
+            const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+            document.getElementById('completionRate').textContent = `${completionRate}%`;
+
+            // Average interest rating
+            const interests = allResponses.filter(r => r.interest_rating).map(r => r.interest_rating);
+            const avgInterest = interests.length > 0
+                ? (interests.reduce((a, b) => a + b, 0) / interests.length).toFixed(1)
+                : '-';
+            document.getElementById('avgInterest').textContent = avgInterest;
+
+            // Median bargain price
+            const bargains = allResponses.filter(r => r.price_bargain).map(r => r.price_bargain).sort((a, b) => a - b);
+            const medianPrice = bargains.length > 0
+                ? `$${bargains[Math.floor(bargains.length / 2)]}`
+                : '-';
+            document.getElementById('medianPrice').textContent = medianPrice;
+        }
+
+        function displayTable() {
+            const tbody = document.getElementById('responsesTableBody');
+            tbody.innerHTML = '';
+
+            allResponses.forEach(response => {
+                const row = document.createElement('tr');
+
+                const date = new Date(response.created_at).toLocaleDateString();
+                const interestBadge = response.interest_rating >= 7
+                    ? '<span class="badge badge-high">High</span>'
+                    : response.interest_rating >= 4
+                    ? '<span class="badge badge-medium">Medium</span>'
+                    : '<span class="badge badge-low">Low</span>';
+
+                row.innerHTML = `
+                    <td>${date}</td>
+                    <td>${response.current_tools || '-'}</td>
+                    <td>${response.role || '-'}</td>
+                    <td>${interestBadge} (${response.interest_rating || '-'}/10)</td>
+                    <td>${response.primary_value_prop || '-'}</td>
+                    <td>${response.commitment_level || '-'}</td>
+                    <td><button onclick="viewDetails('${response.id}')" style="padding: 5px 10px; border: none; background: #0066FF; color: white; border-radius: 4px; cursor: pointer;">View</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        async function viewDetails(responseId) {
+            // Fetch conversation transcript
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/conversation_transcripts?response_id=eq.${responseId}&select=*&order=message_sequence.asc`, {
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                }
+            });
+
+            const transcript = await response.json();
+
+            // Display in modal or expand view
+            const responseData = allResponses.find(r => r.id === responseId);
+            alert(`Full Response:\n\nTools: ${responseData.current_tools}\nRole: ${responseData.role}\nInterest: ${responseData.interest_rating}/10\nTop Priority: ${responseData.primary_value_prop}\nBargain Price: $${responseData.price_bargain}\n\nView conversation transcript in console.`);
+            console.log('Conversation:', transcript);
+        }
+
+        function exportToCSV() {
+            const headers = ['Date', 'Tools', 'Frequency', 'Spending', 'Role', 'Interest', 'Top Priority', 'Price Too Cheap', 'Price Bargain', 'Price Expensive', 'Price Too Expensive', 'Commitment', 'Email'];
+
+            const rows = allResponses.map(r => [
+                new Date(r.created_at).toLocaleDateString(),
+                r.current_tools || '',
+                r.usage_frequency || '',
+                r.current_spending || '',
+                r.role || '',
+                r.interest_rating || '',
+                r.primary_value_prop || '',
+                r.price_too_cheap || '',
+                r.price_bargain || '',
+                r.price_expensive || '',
+                r.price_too_expensive || '',
+                r.commitment_level || '',
+                r.email || ''
+            ]);
+
+            const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `survey-responses-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        }
+
+        function showTab(tab) {
+            // Update button states
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Show/hide tabs
+            document.getElementById('overviewTab').style.display = tab === 'overview' ? 'block' : 'none';
+            document.getElementById('responsesTab').style.display = tab === 'responses' ? 'block' : 'none';
+            document.getElementById('pricingTab').style.display = tab === 'pricing' ? 'block' : 'none';
+        }
+
+        // Load data on page load
+        fetchResponses();
+
+        // Refresh every 30 seconds
+        setInterval(fetchResponses, 30000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,1818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Dev Chat - VibeAtlas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #0066FF;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* Progress bar */
+        .progress-container {
+            padding: 15px 30px 10px;
+            background: #0066FF;
+        }
+
+        .progress-text {
+            color: white;
+            font-size: 13px;
+            margin-bottom: 8px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .progress-bar-wrapper {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #28a745;
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .intro-screen {
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .intro-screen h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .intro-screen p {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .intro-screen .emoji {
+            font-size: 48px;
+            margin-bottom: 20px;
+            role: "img";
+            aria-label: "Coffee cup";
+        }
+
+        .start-button {
+            background: #0066FF;
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+            min-height: 48px;
+        }
+
+        .start-button:hover {
+            background: #0052CC;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 102, 255, 0.4);
+        }
+
+        .start-button:focus {
+            outline: 3px solid #0066FF;
+            outline-offset: 2px;
+        }
+
+        .chat-container {
+            display: none;
+            flex-direction: column;
+            height: 600px;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.ai {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            display: flex;
+            align-items: flex-start;
+            flex-direction: row-reverse;
+        }
+
+        .message .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .message.ai .avatar {
+            background: #0066FF;
+            margin-right: 12px;
+        }
+
+        .message.user .avatar {
+            background: #28a745;
+            margin-left: 12px;
+        }
+
+        .message .content {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 80%;
+            line-height: 1.5;
+            font-size: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            white-space: pre-wrap;
+            color: #333;
+        }
+
+        .message.user .content {
+            background: #0066FF;
+            color: white;
+        }
+
+        /* Quick Reply Buttons */
+        .quick-replies {
+            display: none;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 48px 20px 48px;
+            animation: fadeIn 0.3s;
+        }
+
+        .quick-reply-btn {
+            background: white;
+            border: 2px solid #0066FF;
+            color: #0066FF;
+            padding: 12px 20px;
+            border-radius: 20px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 48px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quick-reply-btn:hover {
+            background: #0066FF;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .quick-reply-btn:focus {
+            outline: 3px solid #0066FF;
+            outline-offset: 2px;
+        }
+
+        .quick-reply-btn.selected {
+            background: #0066FF;
+            color: white;
+        }
+
+        .multi-select-continue {
+            width: 100%;
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.2s;
+            min-height: 48px;
+        }
+
+        .multi-select-continue:hover {
+            background: #218838;
+        }
+
+        .multi-select-continue:focus {
+            outline: 3px solid #28a745;
+            outline-offset: 2px;
+        }
+
+        .multi-select-continue:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .multi-select-hint {
+            text-align: center;
+            font-size: 13px;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        /* Rating Buttons (replacing slider) */
+        .rating-container {
+            display: none;
+            margin: 10px 48px 20px 48px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            animation: fadeIn 0.3s;
+        }
+
+        .rating-question {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .rating-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .rating-btn {
+            flex: 1;
+            min-width: 44px;
+            min-height: 48px;
+            background: #f0f2f5;
+            border: 2px solid #e0e0e0;
+            color: #333;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .rating-btn:hover {
+            background: #e3f2fd;
+            border-color: #0066FF;
+            transform: scale(1.05);
+        }
+
+        .rating-btn:focus {
+            outline: 3px solid #0066FF;
+            outline-offset: 2px;
+        }
+
+        .rating-btn.selected {
+            background: #0066FF;
+            color: white;
+            border-color: #0066FF;
+            transform: scale(1.05);
+        }
+
+        .rating-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        .rating-submit {
+            width: 100%;
+            background: #0066FF;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 48px;
+            margin-top: 15px;
+        }
+
+        .rating-submit:hover {
+            background: #0052CC;
+        }
+
+        .rating-submit:focus {
+            outline: 3px solid #0066FF;
+            outline-offset: 2px;
+        }
+
+        .rating-submit:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        /* Ranking Interface */
+        .ranking-container {
+            display: none;
+            margin: 10px 48px 20px 48px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            animation: fadeIn 0.3s;
+        }
+
+        .ranking-instructions {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .ranking-item {
+            background: #f8f9fa;
+            padding: 16px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+            min-height: 56px;
+        }
+
+        .ranking-item:hover {
+            border-color: #0066FF;
+            background: #f0f7ff;
+        }
+
+        .ranking-item:focus {
+            outline: 3px solid #0066FF;
+            outline-offset: 2px;
+        }
+
+        .ranking-item.dragging {
+            opacity: 0.5;
+        }
+
+        .ranking-number {
+            width: 28px;
+            height: 28px;
+            background: #0066FF;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .ranking-label {
+            flex: 1;
+            font-weight: 600;
+            color: #333;
+            font-size: 15px;
+        }
+
+        .drag-handle {
+            color: #999;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        /* Other input field */
+        .other-input-container {
+            display: none;
+            margin: 10px 48px 20px 48px;
+            animation: fadeIn 0.3s;
+        }
+
+        .other-input-wrapper {
+            display: flex;
+            gap: 8px;
+            align-items: stretch;
+        }
+
+        .other-input {
+            flex: 1;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+            min-height: 48px;
+        }
+
+        .other-input:focus {
+            outline: none;
+            border-color: #0066FF;
+            box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+        }
+
+        .other-input.error {
+            border-color: #dc3545;
+            animation: shake 0.3s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .other-submit-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            min-height: 48px;
+        }
+
+        .other-submit-btn:hover {
+            background: #218838;
+        }
+
+        .other-skip-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            min-height: 48px;
+            margin-left: 10px;
+        }
+
+        .other-skip-btn:hover {
+            background: #5a6268;
+        }
+
+        .other-submit-btn:focus {
+            outline: 3px solid #28a745;
+            outline-offset: 2px;
+        }
+
+        .other-submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .error-message {
+            color: #dc3545;
+            font-size: 13px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: none;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .typing-indicator .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #0066FF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+            margin-right: 12px;
+        }
+
+        .typing-indicator .dots {
+            background: white;
+            border-radius: 18px;
+            padding: 16px 20px;
+            display: flex;
+            gap: 6px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .typing-indicator .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #90949c;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+            30% {
+                transform: translateY(-8px);
+                opacity: 1;
+            }
+        }
+
+        .input-container {
+            padding: 20px 30px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-container input {
+            flex: 1;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+            min-height: 48px;
+        }
+
+        .input-container input:focus {
+            outline: none;
+            border-color: #0066FF;
+            box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+        }
+
+        .input-container button {
+            padding: 14px 28px;
+            background: #0066FF;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-height: 48px;
+        }
+
+        .input-container button:hover:not(:disabled) {
+            background: #0052CC;
+        }
+
+        .input-container button:focus {
+            outline: 3px solid #0066FF;
+            outline-offset: 2px;
+        }
+
+        .input-container button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .input-container button.loading {
+            position: relative;
+            color: transparent;
+        }
+
+        .input-container button.loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 50%;
+            left: 50%;
+            margin-left: -8px;
+            margin-top: -8px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .completion-screen {
+            display: none;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .completion-screen .emoji {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .completion-screen h2 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .completion-screen p {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .share-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .share-button {
+            padding: 14px 24px;
+            border-radius: 10px;
+            border: none;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 48px;
+        }
+
+        .share-button.twitter {
+            background: #1DA1F2;
+            color: white;
+        }
+
+        .share-button.linkedin {
+            background: #0077B5;
+            color: white;
+        }
+
+        .share-button.copy {
+            background: #28a745;
+            color: white;
+        }
+
+        .share-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .share-button:focus {
+            outline: 3px solid currentColor;
+            outline-offset: 2px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 640px) {
+            body {
+                padding: 0;
+            }
+
+            .container {
+                border-radius: 0;
+                height: 100vh;
+                max-height: 100vh;
+            }
+
+            .chat-container {
+                height: calc(100vh - 100px);
+            }
+
+            .messages {
+                padding: 20px;
+            }
+
+            .quick-replies {
+                margin: 10px 20px 20px 20px;
+            }
+
+            .rating-container {
+                margin: 10px 20px 20px 20px;
+                padding: 15px;
+            }
+
+            .rating-buttons {
+                gap: 6px;
+            }
+
+            .rating-btn {
+                min-width: 36px;
+                min-height: 44px;
+                font-size: 14px;
+            }
+
+            .ranking-container {
+                margin: 10px 20px 20px 20px;
+            }
+
+            .other-input-container {
+                margin: 10px 20px 20px 20px;
+            }
+
+            .other-input-wrapper {
+                flex-direction: column;
+            }
+
+            .multi-select-continue {
+                padding: 16px;
+                min-height: 52px;
+            }
+
+            .ranking-item {
+                padding: 18px 15px;
+                min-height: 60px;
+            }
+
+            .quick-reply-btn {
+                font-size: 15px;
+                padding: 14px 20px;
+                min-height: 52px;
+            }
+
+            .input-container {
+                padding: 15px 20px;
+            }
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .message .content {
+                border: 2px solid #000;
+            }
+
+            .quick-reply-btn {
+                border-width: 3px;
+            }
+        }
+
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Screen reader only content */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" role="main">
+        <div class="header">
+            <h1>Developer Coffee Chat</h1>
+            <p>VibeAtlas Research</p>
+        </div>
+        <div class="progress-container" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-text" id="progressText">Question 1 of 8</div>
+            <div class="progress-bar-wrapper">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+        </div>
+
+        <!-- Intro Screen -->
+        <div class="intro-screen" id="introScreen">
+            <div class="emoji" role="img" aria-label="Coffee cup">☕</div>
+            <h2>Tell us about your AI coding tools</h2>
+            <p>
+                <strong>2-3 minute survey</strong> to understand how developers use AI coding tools.
+            </p>
+            <p style="font-size: 14px; color: #666; margin-top: 15px;">
+                100% anonymous • No sales • Your feedback helps us build better tools
+            </p>
+            <button class="start-button" onclick="startSurvey()" aria-label="Start survey">Start Survey</button>
+        </div>
+
+        <!-- Chat Interface -->
+        <div class="chat-container" id="chatContainer" role="region" aria-label="Chat conversation">
+            <div class="messages" id="messages" aria-live="polite" aria-atomic="false"></div>
+
+            <!-- Typing Indicator -->
+            <div class="typing-indicator" id="typingIndicator" aria-live="polite" aria-label="AI is typing">
+                <div class="avatar" aria-hidden="true">🤖</div>
+                <div class="dots">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
+
+            <!-- Quick Reply Buttons -->
+            <div class="quick-replies" id="quickReplies" role="group" aria-label="Quick reply options"></div>
+
+            <!-- Rating Buttons (replacing slider) -->
+            <div class="rating-container" id="ratingContainer" role="group" aria-label="Rating scale from 1 to 10">
+                <div class="rating-question" id="ratingQuestion"></div>
+                <div class="rating-buttons" id="ratingButtons"></div>
+                <div class="rating-labels">
+                    <span>Not at all</span>
+                    <span>Extremely</span>
+                </div>
+                <button class="rating-submit" onclick="submitRating()" id="ratingSubmitBtn" disabled aria-label="Submit rating">Submit</button>
+                <div class="error-message" id="ratingError" role="alert">Please select a rating</div>
+            </div>
+
+            <!-- Ranking Interface -->
+            <div class="ranking-container" id="rankingContainer" role="group" aria-label="Ranking interface">
+                <div class="ranking-instructions">Drag to reorder by priority (most important first)</div>
+                <div id="rankingItems"></div>
+                <button class="rating-submit" onclick="submitRanking()" aria-label="Submit ranking">Submit Ranking</button>
+            </div>
+
+            <!-- Other Input -->
+            <div class="other-input-container" id="otherInputContainer">
+                <div class="other-input-wrapper">
+                    <input
+                        type="text"
+                        class="other-input"
+                        id="otherInput"
+                        placeholder="Type your answer..."
+                        onkeypress="handleOtherKeyPress(event)"
+                        aria-label="Type your answer"
+                        aria-describedby="otherError"
+                    >
+                    <button class="other-submit-btn" onclick="submitOtherInput()" id="otherSubmitBtn" aria-label="Submit answer">Continue</button>
+                    <button class="other-skip-btn" onclick="skipOtherInput()" id="otherSkipBtn" aria-label="Skip question" style="display: none;">Skip</button>
+                </div>
+                <div class="error-message" id="otherError" role="alert">Please enter your answer</div>
+            </div>
+
+            <div class="input-container">
+                <label for="userInput" class="sr-only">Type your message</label>
+                <input
+                    type="text"
+                    id="userInput"
+                    placeholder="Type your response..."
+                    onkeypress="handleKeyPress(event)"
+                    aria-label="Type your response"
+                >
+                <button onclick="sendMessage()" id="sendButton" aria-label="Send message">Send</button>
+            </div>
+        </div>
+
+        <!-- Completion Screen -->
+        <div class="completion-screen" id="completionScreen">
+            <div class="emoji" role="img" aria-label="Rocket">🚀</div>
+            <h2>Thank you!</h2>
+            <p>
+                Your feedback helps us build better AI development tools.
+            </p>
+            <p style="font-size: 14px; color: #999; margin-top: 10px;" id="referralInfo">
+                <strong>Share with 2 friends → Get 3 months free premium when we launch!</strong>
+            </p>
+            <div style="margin: 15px 0; padding: 10px; background: #f8f9fa; border-radius: 8px; display: none;" id="referralUrlContainer">
+                <p style="font-size: 12px; color: #666; margin-bottom: 5px;">Your referral link:</p>
+                <p id="referralUrl" style="font-size: 13px; color: #0066FF; word-break: break-all; font-family: monospace;"></p>
+            </div>
+            <p style="font-size: 14px; color: #999; margin-top: 20px;">
+                — VibeAtlas Team
+            </p>
+            <div class="share-buttons">
+                <button class="share-button copy" onclick="copyLink()" aria-label="Copy survey link">
+                    <span aria-hidden="true">📋</span> Copy Link
+                </button>
+                <a href="#" class="share-button twitter" id="twitterShare" target="_blank" rel="noopener noreferrer" aria-label="Share on Twitter">
+                    <span aria-hidden="true">🐦</span> Share
+                </a>
+                <a href="#" class="share-button linkedin" id="linkedinShare" target="_blank" rel="noopener noreferrer" aria-label="Share on LinkedIn">
+                    <span aria-hidden="true">💼</span> Share
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const EDGE_FUNCTION_URL = 'https://rosnhltrmvtlnekqbjos.supabase.co/functions/v1/wtp-survey-chat';
+        const SURVEY_URL = window.location.href.split('?')[0];
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJvc25obHRybXZ0bG5la3Fiam9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2NDI5OTgsImV4cCI6MjA3NzIxODk5OH0.JSCqo0J7uncLXH88LhXBbPd2YWlkRu0rDW59t-INYO0';
+
+        let messages = [];
+        let sessionId = crypto.randomUUID();
+        let currentQuestionType = null;
+        let selectedOptions = [];
+        let isMultiSelect = false;
+        let selectedRating = null;
+        let totalQuestions = 8; // Approximate number of questions
+        let currentQuestion = 0;
+
+        // Quick reply options for different question types
+        const quickReplyOptions = {
+            tools: {
+                options: ['Cursor', 'Copilot', 'Claude Code', 'ChatGPT', 'None', 'Other'],
+                multiSelect: true
+            },
+            frequency: {
+                options: ['Every day', 'Few times/week', 'Weekly', 'Rarely', 'Never'],
+                multiSelect: false
+            },
+            spending: {
+                options: ['$0', '$10-20/mo', '$20-50/mo', '$50+/mo'],
+                multiSelect: false
+            },
+            commitment: {
+                options: [
+                    {text: '🎁 Free premium for life + early access', value: 'free_premium_early_access'},
+                    {text: '📧 Waitlist only', value: 'waitlist_only'},
+                    {text: '💰 Pre-order', value: 'preorder'},
+                    {text: '🤔 Maybe later', value: 'maybe_later'},
+                    {text: '❌ Not interested', value: 'not_interested'}
+                ],
+                multiSelect: false
+            },
+            role: {
+                options: ['Developer', 'Manager', 'Founder', 'Student', 'Other'],
+                multiSelect: false
+            }
+        };
+
+        function detectQuestionType(message) {
+            const msg = message.toLowerCase();
+
+            // ===== HIGH PRIORITY PATTERNS (check first) =====
+
+            // RATING: Explicit 1-10 scale questions ONLY
+            // Must have "1-10" or "1 to 10" AND a rating indicator
+            if ((msg.includes('1-10') || msg.includes('1 to 10') || msg.match(/\b(scale|rate)\s+(1|from\s+1)\s+to\s+10\b/)) &&
+                (msg.includes('rate') || msg.includes('how annoying') || msg.includes('how interested') || msg.includes('score'))) {
+                return 'rating';
+            }
+
+            // RANKING: Must explicitly mention "rank" AND include ranking items
+            // This is very specific - must have "rank" verb + multiple priority items
+            if (msg.includes('rank') &&
+                (msg.includes('cost') || msg.includes('quality') || msg.includes('privacy') || msg.includes('speed') || msg.includes('reliability')) &&
+                (msg.includes('order') || msg.includes('priority') || msg.includes('important'))) {
+                return 'ranking';
+            }
+
+            // ===== INITIAL QUESTIONS (specific openers) =====
+
+            // TOOLS: Only match at conversation start with specific phrasings
+            // Must match tool selection patterns, not pain incident questions
+            if ((msg.match(/\b(which|what)\s+ai\s+tool/i) ||
+                 msg.includes('rocking these days') ||
+                 msg.includes('what tools') && msg.includes('using')) &&
+                // CRITICAL: Exclude pain/incident questions
+                !msg.includes('annoying') &&
+                !msg.includes('problem') &&
+                !msg.includes('issue') &&
+                !msg.includes('last') &&
+                !msg.includes('happened')) {
+                return 'tools';
+            }
+
+            // FREQUENCY: How often do you use...
+            if ((msg.includes('how often') || msg.includes('how frequently')) &&
+                !msg.includes('1-10')) {
+                return 'frequency';
+            }
+
+            // ===== SPENDING QUESTIONS =====
+
+            // SPENDING: Must explicitly ask about money/cost
+            if ((msg.includes('spending') || msg.includes('how much')) &&
+                (msg.includes('month') || msg.includes('$/mo') || msg.includes('per month') || msg.includes('paying'))) {
+                return 'spending';
+            }
+
+            // ===== COMMITMENT QUESTIONS =====
+
+            // COMMITMENT: Waitlist/pre-order specific
+            if ((msg.includes('waitlist') || msg.includes('pre-order') || msg.includes('commitment')) &&
+                (msg.includes('join') || msg.includes('sign up') || msg.includes('interested'))) {
+                return 'commitment';
+            }
+
+
+            // ===== DEMOGRAPHIC QUESTIONS =====
+
+            // ROLE: Must explicitly ask about role/position
+            if (msg.match(/\b(what|are you)\s+(is your\s+)?role\b/i) ||
+                msg.match(/\b(developer|manager|founder|student)\s+(or|\/)\s+(developer|manager|founder|student)/i)) {
+                return 'role';
+            }
+
+            // ===== DEFAULT: TEXT INPUT =====
+            // For open-ended questions like pain incidents, workarounds, "why", etc.
+            // This includes: "What was the last annoying thing?", "Why is that your top priority?", etc.
+            return 'text';
+        }
+
+        function updateProgress() {
+            const progress = Math.min((currentQuestion / totalQuestions) * 100, 100);
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+
+            progressBar.style.width = progress + '%';
+            progressBar.parentElement.parentElement.setAttribute('aria-valuenow', Math.round(progress));
+
+            // Update text
+            if (currentQuestion >= totalQuestions) {
+                progressText.textContent = 'Complete!';
+            } else {
+                progressText.textContent = `Question ${currentQuestion} of ${totalQuestions}`;
+            }
+        }
+
+        function showQuickReplies(type) {
+            hideAllInteractive();
+            const container = document.getElementById('quickReplies');
+            const config = quickReplyOptions[type];
+
+            if (!config) return;
+
+            const options = config.options || config;
+            isMultiSelect = config.multiSelect || false;
+            selectedOptions = [];
+
+            container.innerHTML = '';
+
+            options.forEach((option, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'quick-reply-btn';
+                btn.setAttribute('role', 'button');
+                btn.setAttribute('tabindex', '0');
+
+                if (typeof option === 'object') {
+                    btn.textContent = option.text;
+                    btn.dataset.value = option.value;
+                    btn.setAttribute('aria-label', option.text);
+                    btn.onclick = () => toggleQuickReply(btn, option.value);
+                    btn.onkeypress = (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            toggleQuickReply(btn, option.value);
+                        }
+                    };
+                } else {
+                    btn.textContent = option;
+                    btn.dataset.value = option;
+                    btn.setAttribute('aria-label', option);
+                    btn.onclick = () => toggleQuickReply(btn, option);
+                    btn.onkeypress = (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            toggleQuickReply(btn, option);
+                        }
+                    };
+                }
+
+                container.appendChild(btn);
+            });
+
+            // Add multi-select controls if needed
+            if (isMultiSelect) {
+                const hint = document.createElement('div');
+                hint.className = 'multi-select-hint';
+                hint.textContent = 'Select all that apply';
+                hint.setAttribute('aria-live', 'polite');
+                container.appendChild(hint);
+
+                const continueBtn = document.createElement('button');
+                continueBtn.className = 'multi-select-continue';
+                continueBtn.textContent = 'Continue →';
+                continueBtn.onclick = submitMultiSelect;
+                continueBtn.disabled = true;
+                continueBtn.setAttribute('aria-label', 'Continue with selected options');
+                container.appendChild(continueBtn);
+            }
+
+            container.style.display = 'flex';
+            scrollToBottom();
+
+            // Focus first button
+            setTimeout(() => {
+                const firstBtn = container.querySelector('.quick-reply-btn');
+                if (firstBtn) firstBtn.focus();
+            }, 100);
+        }
+
+        function toggleQuickReply(btn, value) {
+            if (!isMultiSelect) {
+                // Single select - immediate submit
+                selectQuickReply(value);
+                return;
+            }
+
+            // Multi-select mode
+            if (value === 'None') {
+                // "None" is exclusive - clears everything
+                selectedOptions = [value];
+                document.querySelectorAll('.quick-reply-btn').forEach(b => {
+                    b.classList.remove('selected');
+                    b.setAttribute('aria-pressed', 'false');
+                });
+                btn.classList.add('selected');
+                btn.setAttribute('aria-pressed', 'true');
+                document.getElementById('otherInputContainer').style.display = 'none';
+                updateMultiSelectButton();
+            } else if (value === 'Other') {
+                // Toggle "Other" selection
+                const index = selectedOptions.indexOf(value);
+                if (index > -1) {
+                    // Deselect "Other"
+                    selectedOptions.splice(index, 1);
+                    btn.classList.remove('selected');
+                    btn.setAttribute('aria-pressed', 'false');
+                    document.getElementById('otherInputContainer').style.display = 'none';
+                } else {
+                    // Select "Other" - keep existing selections
+                    selectedOptions = selectedOptions.filter(v => v !== 'None');
+                    document.querySelectorAll('.quick-reply-btn').forEach(b => {
+                        if (b.dataset.value === 'None') {
+                            b.classList.remove('selected');
+                            b.setAttribute('aria-pressed', 'false');
+                        }
+                    });
+
+                    selectedOptions.push(value);
+                    btn.classList.add('selected');
+                    btn.setAttribute('aria-pressed', 'true');
+
+                    // Show input field
+                    const container = document.getElementById('otherInputContainer');
+                    container.style.display = 'block';
+                    document.getElementById('otherInput').focus();
+                    scrollToBottom();
+                }
+                updateMultiSelectButton();
+            } else {
+                // Toggle regular option
+                const index = selectedOptions.indexOf(value);
+                if (index > -1) {
+                    selectedOptions.splice(index, 1);
+                    btn.classList.remove('selected');
+                    btn.setAttribute('aria-pressed', 'false');
+                } else {
+                    // Remove "None" if selecting actual options
+                    selectedOptions = selectedOptions.filter(v => v !== 'None');
+                    document.querySelectorAll('.quick-reply-btn').forEach(b => {
+                        if (b.dataset.value === 'None') {
+                            b.classList.remove('selected');
+                            b.setAttribute('aria-pressed', 'false');
+                        }
+                    });
+
+                    selectedOptions.push(value);
+                    btn.classList.add('selected');
+                    btn.setAttribute('aria-pressed', 'true');
+                }
+                updateMultiSelectButton();
+            }
+        }
+
+        function updateMultiSelectButton() {
+            const continueBtn = document.querySelector('.multi-select-continue');
+            if (continueBtn) {
+                continueBtn.disabled = selectedOptions.length === 0;
+            }
+        }
+
+        function submitMultiSelect() {
+            if (selectedOptions.length === 0) return;
+
+            // Check if "Other" is selected
+            const hasOther = selectedOptions.includes('Other');
+            const otherText = document.getElementById('otherInput').value.trim();
+
+            if (hasOther && !otherText) {
+                // "Other" selected but no text entered - show error
+                showError('otherInput', 'otherError', 'Please enter your answer');
+                return;
+            }
+
+            // Build response
+            let response;
+            if (hasOther && otherText) {
+                // Replace "Other" with actual text
+                const otherOptions = selectedOptions.filter(opt => opt !== 'Other');
+                if (otherOptions.length > 0) {
+                    response = otherOptions.join(', ') + ', Other: ' + otherText;
+                } else {
+                    response = 'Other: ' + otherText;
+                }
+            } else {
+                response = selectedOptions.join(', ');
+            }
+
+            // Clear Other input
+            document.getElementById('otherInput').value = '';
+            clearError('otherInput', 'otherError');
+
+            sendMessageWithText(response);
+        }
+
+        function submitOtherInput() {
+            const otherText = document.getElementById('otherInput').value.trim();
+
+            if (!otherText) {
+                showError('otherInput', 'otherError', 'Please enter your answer');
+                return;
+            }
+
+            // Build response with all selected options (if in multi-select context)
+            let response;
+            if (selectedOptions.length > 0) {
+                // Multi-select context (e.g., "Other" button was clicked)
+                const otherOptions = selectedOptions.filter(opt => opt !== 'Other');
+                if (otherOptions.length > 0) {
+                    response = otherOptions.join(', ') + ', Other: ' + otherText;
+                } else {
+                    response = 'Other: ' + otherText;
+                }
+            } else {
+                // Plain text input context (e.g., pain incident question)
+                response = otherText;
+            }
+
+            // Clear Other input
+            document.getElementById('otherInput').value = '';
+            clearError('otherInput', 'otherError');
+
+            sendMessageWithText(response);
+        }
+
+        function skipOtherInput() {
+            // Send "skip" as response for optional questions
+            document.getElementById('otherInput').value = '';
+            clearError('otherInput', 'otherError');
+            sendMessageWithText('skip');
+        }
+
+        function showRating(aiMessage) {
+            hideAllInteractive();
+            const container = document.getElementById('ratingContainer');
+            const buttonsContainer = document.getElementById('ratingButtons');
+            const questionLabel = document.getElementById('ratingQuestion');
+
+            selectedRating = null;
+            buttonsContainer.innerHTML = '';
+            document.getElementById('ratingSubmitBtn').disabled = true;
+
+            // Extract and display the rating question for context
+            if (aiMessage) {
+                // Try to extract just the question part (remove extra context)
+                let question = aiMessage;
+                // If message has "1-10", use that as the question
+                const match = aiMessage.match(/(.+?1-10[^?]*\??)/i);
+                if (match) {
+                    question = match[1].trim();
+                }
+                questionLabel.textContent = question;
+            } else {
+                questionLabel.textContent = 'Rate on a scale of 1-10';
+            }
+
+            // Create 10 rating buttons
+            for (let i = 1; i <= 10; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'rating-btn';
+                btn.textContent = i;
+                btn.dataset.value = i;
+                btn.setAttribute('role', 'button');
+                btn.setAttribute('aria-label', `Rate ${i} out of 10`);
+                btn.setAttribute('tabindex', '0');
+                btn.onclick = () => selectRating(btn, i);
+                btn.onkeypress = (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        selectRating(btn, i);
+                    }
+                };
+                buttonsContainer.appendChild(btn);
+            }
+
+            container.style.display = 'block';
+            clearError('ratingSubmitBtn', 'ratingError');
+            scrollToBottom();
+
+            // Focus first button
+            setTimeout(() => {
+                const firstBtn = buttonsContainer.querySelector('.rating-btn');
+                if (firstBtn) firstBtn.focus();
+            }, 100);
+        }
+
+        function selectRating(btn, value) {
+            selectedRating = value;
+
+            // Update visual state
+            document.querySelectorAll('.rating-btn').forEach(b => {
+                b.classList.remove('selected');
+                b.setAttribute('aria-pressed', 'false');
+            });
+            btn.classList.add('selected');
+            btn.setAttribute('aria-pressed', 'true');
+
+            // Enable submit button
+            document.getElementById('ratingSubmitBtn').disabled = false;
+            clearError('ratingSubmitBtn', 'ratingError');
+        }
+
+        function submitRating() {
+            if (selectedRating === null) {
+                showError('ratingSubmitBtn', 'ratingError', 'Please select a rating');
+                return;
+            }
+            sendMessageWithText(selectedRating.toString());
+        }
+
+        function showRanking() {
+            hideAllInteractive();
+            const container = document.getElementById('rankingContainer');
+            const itemsContainer = document.getElementById('rankingItems');
+
+            const items = ['Cost', 'Quality', 'Privacy', 'Speed', 'Reliability'];
+            itemsContainer.innerHTML = '';
+
+            items.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'ranking-item';
+                div.draggable = true;
+                div.dataset.item = item;
+                div.setAttribute('role', 'button');
+                div.setAttribute('aria-label', `${item}, position ${index + 1}. Drag to reorder.`);
+                div.setAttribute('tabindex', '0');
+                div.innerHTML = `
+                    <span class="ranking-number">${index + 1}</span>
+                    <span class="ranking-label">${item}</span>
+                    <span class="drag-handle" aria-hidden="true">☰</span>
+                `;
+
+                div.addEventListener('dragstart', handleDragStart);
+                div.addEventListener('dragover', handleDragOver);
+                div.addEventListener('drop', handleDrop);
+                div.addEventListener('dragend', handleDragEnd);
+
+                itemsContainer.appendChild(div);
+            });
+
+            container.style.display = 'block';
+            scrollToBottom();
+        }
+
+        function showTextInput(aiMessage = '') {
+            hideAllInteractive();
+            const container = document.getElementById('otherInputContainer');
+            const input = document.getElementById('otherInput');
+            const skipBtn = document.getElementById('otherSkipBtn');
+
+            // Update placeholder for context
+            input.placeholder = 'Type your answer...';
+            input.value = '';
+
+            // Check if this is an optional question (like phone number)
+            const isOptional = aiMessage && (
+                aiMessage.toLowerCase().includes('optional') ||
+                aiMessage.toLowerCase().includes('skip if') ||
+                aiMessage.toLowerCase().includes('phone')
+            );
+
+            // Show/hide skip button based on whether question is optional
+            if (skipBtn) {
+                skipBtn.style.display = isOptional ? 'inline-block' : 'none';
+            }
+
+            container.style.display = 'block';
+            scrollToBottom();
+
+            // Focus the input
+            setTimeout(() => {
+                input.focus();
+            }, 100);
+        }
+
+        function hideAllInteractive() {
+            document.getElementById('quickReplies').style.display = 'none';
+            document.getElementById('ratingContainer').style.display = 'none';
+            document.getElementById('rankingContainer').style.display = 'none';
+            document.getElementById('otherInputContainer').style.display = 'none';
+        }
+
+        function selectQuickReply(value) {
+            hideAllInteractive();
+
+            if (value === 'Other') {
+                const container = document.getElementById('otherInputContainer');
+                container.style.display = 'block';
+                document.getElementById('otherInput').focus();
+                scrollToBottom();
+            } else {
+                sendMessageWithText(value);
+            }
+        }
+
+        function submitRanking() {
+            const items = Array.from(document.querySelectorAll('.ranking-item'))
+                .map(item => item.dataset.item);
+            const ranking = items.join(', ');
+            sendMessageWithText(ranking);
+        }
+
+        let draggedElement = null;
+
+        function handleDragStart(e) {
+            draggedElement = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            if (this !== draggedElement) {
+                const allItems = Array.from(document.querySelectorAll('.ranking-item'));
+                const draggedIndex = allItems.indexOf(draggedElement);
+                const droppedIndex = allItems.indexOf(this);
+
+                if (draggedIndex < droppedIndex) {
+                    this.after(draggedElement);
+                } else {
+                    this.before(draggedElement);
+                }
+
+                updateRankingNumbers();
+            }
+        }
+
+        function handleDragEnd() {
+            this.classList.remove('dragging');
+        }
+
+        function updateRankingNumbers() {
+            document.querySelectorAll('.ranking-item').forEach((item, index) => {
+                item.querySelector('.ranking-number').textContent = index + 1;
+                item.setAttribute('aria-label', `${item.dataset.item}, position ${index + 1}. Drag to reorder.`);
+            });
+        }
+
+        function handleOtherKeyPress(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                submitOtherInput();
+            }
+        }
+
+        function showError(inputId, errorId, message) {
+            const input = document.getElementById(inputId);
+            const error = document.getElementById(errorId);
+
+            input.classList.add('error');
+            error.textContent = message;
+            error.classList.add('show');
+
+            // Announce to screen readers
+            error.setAttribute('role', 'alert');
+        }
+
+        function clearError(inputId, errorId) {
+            const input = document.getElementById(inputId);
+            const error = document.getElementById(errorId);
+
+            input.classList.remove('error');
+            error.classList.remove('show');
+        }
+
+        function startSurvey() {
+            document.getElementById('introScreen').style.display = 'none';
+            document.getElementById('chatContainer').style.display = 'flex';
+
+            // Preload first message for instant feel
+            const firstMessage = "Which AI coding tools do you use?";
+            addMessage('ai', firstMessage);
+            messages.push({ role: 'assistant', content: firstMessage });
+
+            currentQuestion = 1;
+            updateProgress();
+
+            // Show quick replies immediately
+            showQuickReplies('tools');
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            sendMessageWithText(message);
+            input.value = '';
+        }
+
+        async function sendMessageWithText(message) {
+            addMessage('user', message);
+            messages.push({ role: 'user', content: message });
+
+            const sendButton = document.getElementById('sendButton');
+            const userInput = document.getElementById('userInput');
+
+            sendButton.disabled = true;
+            sendButton.classList.add('loading');
+            userInput.disabled = true;
+
+            showTypingIndicator();
+            hideAllInteractive();
+
+            currentQuestion++;
+            updateProgress();
+
+            try {
+                const response = await fetch(EDGE_FUNCTION_URL + getUTMParams(), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    },
+                    body: JSON.stringify({ messages })
+                });
+
+                const data = await response.json();
+                hideTypingIndicator();
+
+                if (data.message) {
+                    addMessage('ai', data.message);
+                    messages.push({ role: 'assistant', content: data.message });
+
+                    if (data.isComplete) {
+                        setTimeout(() => showCompletionScreen(data.referralData), 2000);
+                    } else {
+                        const questionType = detectQuestionType(data.message);
+                        if (questionType === 'rating') {
+                            showRating(data.message);
+                        } else if (questionType === 'ranking') {
+                            showRanking();
+                        } else if (questionType === 'text') {
+                            // Show text input for open-ended questions
+                            showTextInput(data.message);
+                        } else if (questionType) {
+                            // Show quick reply buttons for other types
+                            showQuickReplies(questionType);
+                        } else {
+                            // Fallback: show text input if uncertain
+                            showTextInput(data.message);
+                        }
+                    }
+                }
+            } catch (error) {
+                hideTypingIndicator();
+                addMessage('ai', 'Sorry, there was an error. Please try again.');
+                console.error('Error:', error);
+
+                // Show error state
+                sendButton.textContent = 'Retry';
+                setTimeout(() => {
+                    sendButton.textContent = 'Send';
+                }, 3000);
+            } finally {
+                sendButton.disabled = false;
+                sendButton.classList.remove('loading');
+                userInput.disabled = false;
+                userInput.focus();
+            }
+        }
+
+        function addMessage(role, content) {
+            const messagesContainer = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+            messageDiv.setAttribute('role', role === 'ai' ? 'status' : 'log');
+
+            const avatar = document.createElement('div');
+            avatar.className = 'avatar';
+            avatar.textContent = role === 'ai' ? '🤖' : '👤';
+            avatar.setAttribute('aria-hidden', 'true');
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'content';
+            contentDiv.textContent = content;
+
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(contentDiv);
+            messagesContainer.appendChild(messageDiv);
+
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            const messagesContainer = document.getElementById('messages');
+            setTimeout(() => {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 100);
+        }
+
+        function showTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'flex';
+            scrollToBottom();
+        }
+
+        function hideTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'none';
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        let userReferralData = null; // Store referral data globally
+
+        function showCompletionScreen(referralData) {
+            document.getElementById('chatContainer').style.display = 'none';
+            document.getElementById('completionScreen').style.display = 'block';
+
+            // Store referral data for use in copyLink function
+            userReferralData = referralData;
+
+            // Set progress to 100%
+            currentQuestion = totalQuestions;
+            updateProgress();
+
+            // Update referral information if available
+            if (referralData && referralData.referralCode) {
+                const referralLink = `${SURVEY_URL}?ref=${referralData.referralCode}`;
+                const referralCount = referralData.referralCount || 0;
+                const rewardEarned = referralData.rewardEarned || false;
+
+                // Update referral progress text
+                const referralInfoEl = document.getElementById('referralInfo');
+                if (referralInfoEl) {
+                    if (rewardEarned) {
+                        referralInfoEl.innerHTML = '<strong style="color: #28a745;">🎉 Reward unlocked! You\'ve earned 3 months free premium!</strong>';
+                    } else {
+                        referralInfoEl.innerHTML = `<strong>Share with 2 friends → Get 3 months free premium when we launch!</strong><br><span style="font-size: 12px; color: #666;">Progress: ${referralCount}/2 referrals completed</span>`;
+                    }
+                }
+
+                // Update referral URL display
+                const referralUrlEl = document.getElementById('referralUrl');
+                const referralUrlContainer = document.getElementById('referralUrlContainer');
+                if (referralUrlEl && referralUrlContainer) {
+                    referralUrlEl.textContent = referralLink;
+                    referralUrlContainer.style.display = 'block';
+                }
+
+                // Update social share links with referral code
+                const twitterText = encodeURIComponent('I just shared my thoughts on AI coding tools. Take this 2-minute survey and help build better developer tools: ' + referralLink);
+                const linkedinText = encodeURIComponent(referralLink);
+
+                document.getElementById('twitterShare').href = `https://twitter.com/intent/tweet?text=${twitterText}`;
+                document.getElementById('linkedinShare').href = `https://www.linkedin.com/sharing/share-offsite/?url=${linkedinText}`;
+            } else {
+                // Fallback to regular survey URL
+                const twitterText = encodeURIComponent('I just shared my thoughts on AI coding tools. Take this 2-minute survey and help build better developer tools: ' + SURVEY_URL);
+                const linkedinText = encodeURIComponent(SURVEY_URL);
+
+                document.getElementById('twitterShare').href = `https://twitter.com/intent/tweet?text=${twitterText}`;
+                document.getElementById('linkedinShare').href = `https://www.linkedin.com/sharing/share-offsite/?url=${linkedinText}`;
+            }
+        }
+
+        function copyLink() {
+            // Use referral link if available, otherwise use regular survey URL
+            const linkToCopy = userReferralData && userReferralData.referralCode
+                ? `${SURVEY_URL}?ref=${userReferralData.referralCode}`
+                : SURVEY_URL;
+
+            navigator.clipboard.writeText(linkToCopy).then(() => {
+                const button = event.target;
+                const originalText = button.innerHTML;
+                button.innerHTML = '<span aria-hidden="true">✅</span> Copied!';
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy link. Please copy manually: ' + linkToCopy);
+            });
+        }
+
+        function getUTMParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const utmSource = urlParams.get('utm_source') || '';
+            return utmSource ? `?utm_source=${utmSource}` : '';
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Escape key to clear current interactive element
+            if (e.key === 'Escape') {
+                const otherInput = document.getElementById('otherInput');
+                if (otherInput && otherInput === document.activeElement) {
+                    otherInput.value = '';
+                    clearError('otherInput', 'otherError');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
