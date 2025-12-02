@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Survey Dashboard - VibeAtlas</title>
+    <title>Survey Dashboard - Admin</title>
     <style>
         * {
             margin: 0;
@@ -18,7 +18,7 @@
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
         }
 
@@ -66,10 +66,18 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         .table-header h2 {
             color: #333;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         .export-btn {
@@ -80,10 +88,31 @@
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
+            font-size: 14px;
         }
 
         .export-btn:hover {
             background: #218838;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
+        }
+
+        .delete-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
         }
 
         table {
@@ -147,46 +176,104 @@
             margin-bottom: 20px;
         }
 
-        .filters {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
         }
 
-        .filter-select {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
+        .modal-content {
+            background-color: #fefefe;
+            margin: 2% auto;
+            padding: 0;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 1200px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
 
-        .tab-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .tab-btn {
-            padding: 10px 20px;
-            background: white;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            color: #666;
-        }
-
-        .tab-btn.active {
+        .modal-header {
+            padding: 20px 30px;
             background: #0066FF;
             color: white;
-            border-color: #0066FF;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .conversation-view {
-            background: white;
+        .modal-header h2 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .close {
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            opacity: 0.8;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .detail-section {
+            margin-bottom: 30px;
+        }
+
+        .detail-section h3 {
+            color: #0066FF;
+            margin-bottom: 15px;
+            font-size: 18px;
+            border-bottom: 2px solid #0066FF;
+            padding-bottom: 8px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .detail-item {
+            background: #f8f9fa;
+            padding: 12px 15px;
+            border-radius: 6px;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-size: 15px;
+            color: #333;
+            word-break: break-word;
+        }
+
+        .conversation-transcript {
+            background: #f8f9fa;
             padding: 20px;
             border-radius: 8px;
-            margin-top: 10px;
             max-height: 400px;
             overflow-y: auto;
         }
@@ -203,21 +290,67 @@
         }
 
         .message.ai {
-            background: #f5f5f5;
+            background: white;
             margin-right: 40px;
+            border: 1px solid #ddd;
         }
 
         .message-label {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             margin-bottom: 5px;
             color: #666;
+            text-transform: uppercase;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            margin-right: 5px;
+        }
+
+        .btn-view {
+            background: #0066FF;
+            color: white;
+        }
+
+        .btn-view:hover {
+            background: #0052cc;
+        }
+
+        .btn-delete-single {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-delete-single:hover {
+            background: #c82333;
+        }
+
+        .checkbox-cell {
+            width: 40px;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .selected-count {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>📊 Survey Dashboard</h1>
+        <h1>📊 Survey Admin Dashboard</h1>
 
         <div id="error" class="error" style="display: none;"></div>
 
@@ -240,45 +373,51 @@
             </div>
         </div>
 
-        <div class="tab-buttons">
-            <button class="tab-btn active" onclick="showTab('overview')">Overview</button>
-            <button class="tab-btn" onclick="showTab('responses')">All Responses</button>
-            <button class="tab-btn" onclick="showTab('pricing')">Pricing Analysis</button>
-        </div>
-
-        <div id="overviewTab">
-            <div class="responses-table">
-                <div class="table-header">
-                    <h2>Recent Responses</h2>
+        <div class="responses-table">
+            <div class="table-header">
+                <div>
+                    <h2>All Responses</h2>
+                    <span class="selected-count" id="selectedCount">0 selected</span>
+                </div>
+                <div class="header-actions">
+                    <button class="delete-btn" id="deleteSelectedBtn" onclick="deleteSelected()" disabled>Delete Selected</button>
                     <button class="export-btn" onclick="exportToCSV()">Export CSV</button>
                 </div>
-                <div id="loading" class="loading">Loading responses...</div>
-                <div id="tableContainer" style="display: none;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Tools</th>
-                                <th>Role</th>
-                                <th>Interest</th>
-                                <th>Top Priority</th>
-                                <th>Commitment</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="responsesTableBody">
-                        </tbody>
-                    </table>
-                </div>
+            </div>
+            <div id="loading" class="loading">Loading responses...</div>
+            <div id="tableContainer" style="display: none; overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="checkbox-cell">
+                                <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                            </th>
+                            <th>Date</th>
+                            <th>Tools</th>
+                            <th>Role</th>
+                            <th>Interest</th>
+                            <th>Bargain Price</th>
+                            <th>Referrals</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="responsesTableBody">
+                    </tbody>
+                </table>
             </div>
         </div>
+    </div>
 
-        <div id="responsesTab" style="display: none;">
-            <!-- Full response details -->
-        </div>
-
-        <div id="pricingTab" style="display: none;">
-            <!-- Van Westendorp analysis -->
+    <!-- Modal for viewing full details -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Response Details</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Details will be loaded here -->
+            </div>
         </div>
     </div>
 
@@ -287,10 +426,11 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJvc25obHRybXZ0bG5la3Fiam9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2NDI5OTgsImV4cCI6MjA3NzIxODk5OH0.JSCqo0J7uncLXH88LhXBbPd2YWlkRu0rDW59t-INYO0';
 
         let allResponses = [];
+        let selectedIds = new Set();
 
         async function fetchResponses() {
             try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/survey_responses?select=*&order=created_at.desc&limit=100`, {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/survey_responses?select=*&order=created_at.desc`, {
                     headers: {
                         'apikey': SUPABASE_ANON_KEY,
                         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
@@ -317,19 +457,16 @@
             const total = allResponses.length;
             document.getElementById('totalResponses').textContent = total;
 
-            // Calculate completion rate (those who reached the end)
             const completed = allResponses.filter(r => r.email || r.commitment_level).length;
             const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
             document.getElementById('completionRate').textContent = `${completionRate}%`;
 
-            // Average interest rating
             const interests = allResponses.filter(r => r.interest_rating).map(r => r.interest_rating);
             const avgInterest = interests.length > 0
                 ? (interests.reduce((a, b) => a + b, 0) / interests.length).toFixed(1)
                 : '-';
             document.getElementById('avgInterest').textContent = avgInterest;
 
-            // Median bargain price
             const bargains = allResponses.filter(r => r.price_bargain).map(r => r.price_bargain).sort((a, b) => a - b);
             const medianPrice = bargains.length > 0
                 ? `$${bargains[Math.floor(bargains.length / 2)]}`
@@ -344,80 +481,399 @@
             allResponses.forEach(response => {
                 const row = document.createElement('tr');
 
-                const date = new Date(response.created_at).toLocaleDateString();
+                const date = new Date(response.created_at).toLocaleDateString() + ' ' + new Date(response.created_at).toLocaleTimeString();
                 const interestBadge = response.interest_rating >= 7
                     ? '<span class="badge badge-high">High</span>'
                     : response.interest_rating >= 4
                     ? '<span class="badge badge-medium">Medium</span>'
                     : '<span class="badge badge-low">Low</span>';
 
+                const referralInfo = response.referral_count > 0
+                    ? `${response.referral_count}/2 ${response.reward_earned ? '🎉' : ''}`
+                    : '0/2';
+
                 row.innerHTML = `
-                    <td>${date}</td>
+                    <td class="checkbox-cell">
+                        <input type="checkbox" class="row-checkbox" data-id="${response.id}" onchange="updateSelectedCount()">
+                    </td>
+                    <td style="font-size: 13px;">${date}</td>
                     <td>${response.current_tools || '-'}</td>
                     <td>${response.role || '-'}</td>
                     <td>${interestBadge} (${response.interest_rating || '-'}/10)</td>
-                    <td>${response.primary_value_prop || '-'}</td>
-                    <td>${response.commitment_level || '-'}</td>
-                    <td><button onclick="viewDetails('${response.id}')" style="padding: 5px 10px; border: none; background: #0066FF; color: white; border-radius: 4px; cursor: pointer;">View</button></td>
+                    <td>$${response.price_bargain || '-'}</td>
+                    <td>${referralInfo}</td>
+                    <td>
+                        <button class="action-btn btn-view" onclick="viewDetails('${response.id}')">View Full</button>
+                        <button class="action-btn btn-delete-single" onclick="deleteSingle('${response.id}')">Delete</button>
+                    </td>
                 `;
                 tbody.appendChild(row);
             });
+
+            selectedIds.clear();
+            updateSelectedCount();
         }
 
-        async function viewDetails(responseId) {
-            // Fetch conversation transcript
-            const response = await fetch(`${SUPABASE_URL}/rest/v1/conversation_transcripts?response_id=eq.${responseId}&select=*&order=message_sequence.asc`, {
-                headers: {
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+
+            checkboxes.forEach(cb => {
+                cb.checked = selectAll.checked;
+                if (selectAll.checked) {
+                    selectedIds.add(cb.dataset.id);
+                } else {
+                    selectedIds.delete(cb.dataset.id);
                 }
             });
 
-            const transcript = await response.json();
+            updateSelectedCount();
+        }
 
-            // Display in modal or expand view
+        function updateSelectedCount() {
+            const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+            selectedIds.clear();
+            checkboxes.forEach(cb => selectedIds.add(cb.dataset.id));
+
+            const count = selectedIds.size;
+            document.getElementById('selectedCount').textContent = `${count} selected`;
+            document.getElementById('deleteSelectedBtn').disabled = count === 0;
+
+            // Update "select all" checkbox state
+            const allCheckboxes = document.querySelectorAll('.row-checkbox');
+            const selectAll = document.getElementById('selectAll');
+            selectAll.checked = allCheckboxes.length > 0 && allCheckboxes.length === checkboxes.length;
+        }
+
+        async function deleteSelected() {
+            if (selectedIds.size === 0) return;
+
+            if (!confirm(`Are you sure you want to delete ${selectedIds.size} response(s)? This cannot be undone.`)) {
+                return;
+            }
+
+            try {
+                for (const id of selectedIds) {
+                    await deleteResponse(id);
+                }
+
+                alert(`Successfully deleted ${selectedIds.size} response(s)`);
+                await fetchResponses();
+            } catch (error) {
+                alert(`Error deleting responses: ${error.message}`);
+            }
+        }
+
+        async function deleteSingle(id) {
+            if (!confirm('Are you sure you want to delete this response? This cannot be undone.')) {
+                return;
+            }
+
+            try {
+                await deleteResponse(id);
+                alert('Response deleted successfully');
+                await fetchResponses();
+            } catch (error) {
+                alert(`Error deleting response: ${error.message}`);
+            }
+        }
+
+        async function deleteResponse(id) {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/survey_responses?id=eq.${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Prefer': 'return=minimal'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete response');
+            }
+        }
+
+        async function viewDetails(responseId) {
             const responseData = allResponses.find(r => r.id === responseId);
-            alert(`Full Response:\n\nTools: ${responseData.current_tools}\nRole: ${responseData.role}\nInterest: ${responseData.interest_rating}/10\nTop Priority: ${responseData.primary_value_prop}\nBargain Price: $${responseData.price_bargain}\n\nView conversation transcript in console.`);
-            console.log('Conversation:', transcript);
+
+            // Fetch conversation transcript
+            let transcript = [];
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/conversation_transcripts?response_id=eq.${responseId}&select=*&order=message_sequence.asc`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+                transcript = await response.json();
+            } catch (error) {
+                console.error('Error fetching transcript:', error);
+            }
+
+            // Build detailed view
+            const modalBody = document.getElementById('modalBody');
+            modalBody.innerHTML = `
+                <div class="detail-section">
+                    <h3>📋 Basic Information</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">Date & Time</div>
+                            <div class="detail-value">${new Date(responseData.created_at).toLocaleString()}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">AI Tools Used</div>
+                            <div class="detail-value">${responseData.current_tools || 'Not provided'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Usage Frequency</div>
+                            <div class="detail-value">${responseData.usage_frequency || 'Not provided'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Current Spending</div>
+                            <div class="detail-value">${responseData.current_spending || 'Not provided'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Role</div>
+                            <div class="detail-value">${responseData.role || 'Not provided'}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>😤 Pain Points</h3>
+                    <div class="detail-item" style="margin-bottom: 15px;">
+                        <div class="detail-label">Last Pain Incident</div>
+                        <div class="detail-value">${responseData.last_pain_incident || 'Not provided'}</div>
+                    </div>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">Cost Pain (1-10)</div>
+                            <div class="detail-value">${responseData.pain_cost || '-'}/10</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Quality Pain (1-10)</div>
+                            <div class="detail-value">${responseData.pain_quality || '-'}/10</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Privacy Pain (1-10)</div>
+                            <div class="detail-value">${responseData.pain_privacy || '-'}/10</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Speed Pain (1-10)</div>
+                            <div class="detail-value">${responseData.pain_speed || '-'}/10</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Reliability Pain (1-10)</div>
+                            <div class="detail-value">${responseData.pain_reliability || '-'}/10</div>
+                        </div>
+                    </div>
+                    <div class="detail-item" style="margin-top: 15px;">
+                        <div class="detail-label">Workarounds</div>
+                        <div class="detail-value">${responseData.workarounds || 'Not provided'}</div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>🎯 Priorities & Interest</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">JTBD Rankings</div>
+                            <div class="detail-value">${responseData.jtbd_rankings || 'Not provided'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Why Top Priority?</div>
+                            <div class="detail-value">${responseData.jtbd_why_first || 'Not provided'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Why Second Priority?</div>
+                            <div class="detail-value">${responseData.jtbd_why_second || 'Not provided'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Interest Rating</div>
+                            <div class="detail-value">${responseData.interest_rating || '-'}/10</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>💰 Van Westendorp Pricing</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">Too Cheap</div>
+                            <div class="detail-value">$${responseData.price_too_cheap || '-'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Bargain</div>
+                            <div class="detail-value">$${responseData.price_bargain || '-'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Expensive</div>
+                            <div class="detail-value">$${responseData.price_expensive || '-'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Too Expensive</div>
+                            <div class="detail-value">$${responseData.price_too_expensive || '-'}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>✅ Commitment & Deal Breakers</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">Commitment Level</div>
+                            <div class="detail-value">${responseData.commitment_level || 'Not provided'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Deal Breakers</div>
+                            <div class="detail-value">${Array.isArray(responseData.deal_breakers) ? responseData.deal_breakers.join(', ') : responseData.deal_breakers || 'None'}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>📧 Contact Information</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">Email</div>
+                            <div class="detail-value">${responseData.email || 'Not provided'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Name</div>
+                            <div class="detail-value">${responseData.name || 'Not provided'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Phone Number</div>
+                            <div class="detail-value">${responseData.phone_number || 'Not provided'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Friend Email 1</div>
+                            <div class="detail-value">${responseData.friend_email_1 || 'Not provided'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Friend Email 2</div>
+                            <div class="detail-value">${responseData.friend_email_2 || 'Not provided'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Social Share Link</div>
+                            <div class="detail-value">${responseData.social_share_link || 'Not provided'}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>🔗 Referral Information</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">Referral Code</div>
+                            <div class="detail-value">${responseData.referral_code || 'Not generated'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Referred By</div>
+                            <div class="detail-value">${responseData.referred_by || 'Direct visit'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Referral Count</div>
+                            <div class="detail-value">${responseData.referral_count || 0}/2</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Reward Earned</div>
+                            <div class="detail-value">${responseData.reward_earned ? '🎉 Yes - 3 months free!' : 'Not yet'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">UTM Source</div>
+                            <div class="detail-value">${responseData.utm_source || 'Not tracked'}</div>
+                        </div>
+                    </div>
+                </div>
+
+                ${transcript.length > 0 ? `
+                    <div class="detail-section">
+                        <h3>💬 Conversation Transcript</h3>
+                        <div class="conversation-transcript">
+                            ${transcript.map(msg => `
+                                <div class="message ${msg.role}">
+                                    <div class="message-label">${msg.role === 'user' ? 'User' : 'AI'}</div>
+                                    <div>${msg.content}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+
+            document.getElementById('detailModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('detailModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
         }
 
         function exportToCSV() {
-            const headers = ['Date', 'Tools', 'Frequency', 'Spending', 'Role', 'Interest', 'Top Priority', 'Price Too Cheap', 'Price Bargain', 'Price Expensive', 'Price Too Expensive', 'Commitment', 'Email'];
+            const headers = [
+                'Date', 'Tools', 'Frequency', 'Spending', 'Role',
+                'Pain Incident', 'Pain Cost', 'Pain Quality', 'Pain Privacy', 'Pain Speed', 'Pain Reliability',
+                'Workarounds', 'JTBD Rankings', 'Why First', 'Why Second',
+                'Interest', 'Price Too Cheap', 'Price Bargain', 'Price Expensive', 'Price Too Expensive',
+                'Commitment', 'Deal Breakers',
+                'Email', 'Name', 'Phone', 'Friend Email 1', 'Friend Email 2',
+                'Referral Code', 'Referred By', 'Referral Count', 'Reward Earned'
+            ];
 
             const rows = allResponses.map(r => [
-                new Date(r.created_at).toLocaleDateString(),
+                new Date(r.created_at).toLocaleString(),
                 r.current_tools || '',
                 r.usage_frequency || '',
                 r.current_spending || '',
                 r.role || '',
+                (r.last_pain_incident || '').replace(/"/g, '""'),
+                r.pain_cost || '',
+                r.pain_quality || '',
+                r.pain_privacy || '',
+                r.pain_speed || '',
+                r.pain_reliability || '',
+                (r.workarounds || '').replace(/"/g, '""'),
+                r.jtbd_rankings || '',
+                (r.jtbd_why_first || '').replace(/"/g, '""'),
+                (r.jtbd_why_second || '').replace(/"/g, '""'),
                 r.interest_rating || '',
-                r.primary_value_prop || '',
                 r.price_too_cheap || '',
                 r.price_bargain || '',
                 r.price_expensive || '',
                 r.price_too_expensive || '',
                 r.commitment_level || '',
-                r.email || ''
+                Array.isArray(r.deal_breakers) ? r.deal_breakers.join('; ') : r.deal_breakers || '',
+                r.email || '',
+                r.name || '',
+                r.phone_number || '',
+                r.friend_email_1 || '',
+                r.friend_email_2 || '',
+                r.referral_code || '',
+                r.referred_by || '',
+                r.referral_count || 0,
+                r.reward_earned ? 'Yes' : 'No'
             ]);
 
-            const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
-            const blob = new Blob([csv], { type: 'text/csv' });
+            const csv = [
+                headers.map(h => `"${h}"`).join(','),
+                ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+            ].join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = `survey-responses-${new Date().toISOString().split('T')[0]}.csv`;
             a.click();
-        }
-
-        function showTab(tab) {
-            // Update button states
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-
-            // Show/hide tabs
-            document.getElementById('overviewTab').style.display = tab === 'overview' ? 'block' : 'none';
-            document.getElementById('responsesTab').style.display = tab === 'responses' ? 'block' : 'none';
-            document.getElementById('pricingTab').style.display = tab === 'pricing' ? 'block' : 'none';
+            URL.revokeObjectURL(url);
         }
 
         // Load data on page load
