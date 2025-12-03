@@ -908,9 +908,9 @@
             <div class="rating-container" id="ratingContainer" role="group" aria-label="Rating scale from 1 to 10">
                 <div class="rating-question" id="ratingQuestion"></div>
                 <div class="rating-buttons" id="ratingButtons"></div>
-                <div class="rating-labels">
-                    <span>Not at all</span>
-                    <span>Extremely</span>
+                <div class="rating-labels" id="ratingLabels">
+                    <span id="ratingLabelLow">😔 Not at all</span>
+                    <span id="ratingLabelHigh">😊 Extremely</span>
                 </div>
                 <button class="rating-submit" onclick="submitRating()" id="ratingSubmitBtn" disabled aria-label="Submit rating">Submit</button>
                 <div class="error-message" id="ratingError" role="alert">Please select a rating</div>
@@ -946,9 +946,9 @@
                 <input
                     type="text"
                     id="userInput"
-                    placeholder="Type your response..."
+                    placeholder="Type your answer..."
                     onkeypress="handleKeyPress(event)"
-                    aria-label="Type your response"
+                    aria-label="Type your answer"
                 >
                 <button onclick="sendMessage()" id="sendButton" aria-label="Send message">Send</button>
             </div>
@@ -1354,9 +1354,10 @@
             document.getElementById('ratingSubmitBtn').disabled = true;
 
             // Extract and display the rating question for context
+            let question = 'Rate on a scale of 1-10';
             if (aiMessage) {
                 // Try to extract just the question part (remove extra context)
-                let question = aiMessage;
+                question = aiMessage;
                 // If message has "1-10", use that as the question
                 const match = aiMessage.match(/(.+?1-10[^?]*\??)/i);
                 if (match) {
@@ -1364,8 +1365,38 @@
                 }
                 questionLabel.textContent = question;
             } else {
-                questionLabel.textContent = 'Rate on a scale of 1-10';
+                questionLabel.textContent = question;
             }
+
+            // Determine context-aware emoji labels based on question content
+            const lowMsg = aiMessage ? aiMessage.toLowerCase() : '';
+            let lowLabel, highLabel;
+
+            if (lowMsg.includes('pain') || lowMsg.includes('frustrated') || lowMsg.includes('annoying')) {
+                // Pain scale: low pain is good
+                lowLabel = '😊 No pain';
+                highLabel = '😫 Severe pain';
+            } else if (lowMsg.includes('interest') || lowMsg.includes('excited') || lowMsg.includes('like')) {
+                // Interest scale: high is good
+                lowLabel = '😐 Not interested';
+                highLabel = '🤩 Very interested';
+            } else if (lowMsg.includes('likely') || lowMsg.includes('recommend')) {
+                // Likelihood scale: high is good
+                lowLabel = '😐 Not likely';
+                highLabel = '🎯 Very likely';
+            } else if (lowMsg.includes('satisfied') || lowMsg.includes('happy')) {
+                // Satisfaction scale: high is good
+                lowLabel = '😔 Not satisfied';
+                highLabel = '😊 Very satisfied';
+            } else {
+                // Default: generic scale
+                lowLabel = '😔 Not at all';
+                highLabel = '😊 Extremely';
+            }
+
+            // Update labels
+            document.getElementById('ratingLabelLow').textContent = lowLabel;
+            document.getElementById('ratingLabelHigh').textContent = highLabel;
 
             // Create 10 rating buttons
             for (let i = 1; i <= 10; i++) {
@@ -1607,7 +1638,10 @@
             input.value = '';
         }
 
-        async function sendMessageWithText(message) {
+        async function sendMessageWithText(message, retryCount = 0) {
+            const MAX_RETRIES = 3;
+            const RETRY_DELAYS = [1000, 2000, 4000]; // Exponential backoff in ms
+
             addMessage('user', message);
             messages.push({ role: 'user', content: message });
 
@@ -1633,6 +1667,10 @@
                     },
                     body: JSON.stringify({ messages })
                 });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
                 const data = await response.json();
                 hideTypingIndicator();
@@ -1661,21 +1699,73 @@
                         }
                     }
                 }
-            } catch (error) {
-                hideTypingIndicator();
-                addMessage('ai', 'Sorry, there was an error. Please try again.');
-                console.error('Error:', error);
 
-                // Show error state
-                sendButton.textContent = 'Retry';
-                setTimeout(() => {
-                    sendButton.textContent = 'Send';
-                }, 3000);
-            } finally {
+                // Reset UI on success
                 sendButton.disabled = false;
                 sendButton.classList.remove('loading');
                 userInput.disabled = false;
                 userInput.focus();
+
+            } catch (error) {
+                console.error('Error (attempt ' + (retryCount + 1) + '):', error);
+
+                // Auto-retry with exponential backoff
+                if (retryCount < MAX_RETRIES) {
+                    const delay = RETRY_DELAYS[retryCount];
+                    hideTypingIndicator();
+
+                    // Show retry message with countdown
+                    const retryMessage = `Connection issue. Retrying in ${delay/1000} seconds... (${retryCount + 1}/${MAX_RETRIES})`;
+                    addMessage('ai', retryMessage);
+
+                    // Remove user message and retry message before retrying
+                    setTimeout(() => {
+                        // Remove the last two messages (user message and retry message)
+                        const messagesContainer = document.getElementById('messages');
+                        const messageElements = messagesContainer.querySelectorAll('.message');
+                        if (messageElements.length >= 2) {
+                            messageElements[messageElements.length - 1].remove(); // Remove retry message
+                            messageElements[messageElements.length - 2].remove(); // Remove user message
+                        }
+
+                        // Remove from messages array
+                        messages.pop(); // Remove user message
+
+                        currentQuestion--; // Decrement to retry with same question number
+
+                        // Retry
+                        sendMessageWithText(message, retryCount + 1);
+                    }, delay);
+                } else {
+                    // Max retries exceeded
+                    hideTypingIndicator();
+                    addMessage('ai', 'Unable to connect after multiple attempts. Please check your internet connection and click "Retry" below.');
+
+                    // Show retry button
+                    sendButton.textContent = '🔄 Retry Now';
+                    sendButton.disabled = false;
+                    sendButton.classList.remove('loading');
+                    userInput.disabled = false;
+
+                    // Set up manual retry
+                    const retryHandler = () => {
+                        sendButton.textContent = 'Send';
+                        sendButton.removeEventListener('click', retryHandler);
+
+                        // Remove error message
+                        const messagesContainer = document.getElementById('messages');
+                        const lastMessage = messagesContainer.lastElementChild;
+                        if (lastMessage && lastMessage.classList.contains('ai')) {
+                            lastMessage.remove();
+                        }
+
+                        // Retry from the beginning
+                        sendMessageWithText(message, 0);
+                    };
+
+                    sendButton.addEventListener('click', retryHandler);
+                    userInput.focus();
+                }
             }
         }
 
