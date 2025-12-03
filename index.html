@@ -398,16 +398,69 @@
 
         .ranking-item {
             background: #f8f9fa;
-            padding: 16px;
+            padding: 12px 16px;
             margin-bottom: 10px;
             border-radius: 8px;
             border: 2px solid #e0e0e0;
             cursor: move;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             transition: all 0.2s;
             min-height: 56px;
+            touch-action: none;
+        }
+
+        .ranking-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .rank-btn {
+            width: 28px;
+            height: 24px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .rank-btn:hover:not(:disabled) {
+            background: #0066FF;
+            color: white;
+            border-color: #0066FF;
+        }
+
+        .rank-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .ranking-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .ranking-example {
+            font-size: 11px;
+            color: #888;
+            font-weight: 400;
+        }
+
+        .ranking-placeholder {
+            background: #e3f2fd;
+            border: 2px dashed #0066FF;
+            border-radius: 8px;
+            margin-bottom: 10px;
         }
 
         .ranking-item:hover {
@@ -918,7 +971,10 @@
 
             <!-- Ranking Interface -->
             <div class="ranking-container" id="rankingContainer" role="group" aria-label="Ranking interface">
-                <div class="ranking-instructions">Drag to reorder by priority (most important first)</div>
+                <div class="ranking-instructions">
+                    <strong>Rank these factors by importance when choosing an AI coding tool:</strong>
+                    <br><small style="color: #888;">Use the arrows to move items up/down, or drag on desktop</small>
+                </div>
                 <div id="rankingItems"></div>
                 <button class="rating-submit" onclick="submitRanking()" aria-label="Submit ranking">Submit Ranking</button>
             </div>
@@ -972,7 +1028,7 @@
                 — VibeAtlas Team
             </p>
             <div class="share-buttons">
-                <button class="share-button copy" onclick="copyLink()" aria-label="Copy survey link">
+                <button class="share-button copy" onclick="copyLink(event)" aria-label="Copy survey link">
                     <span aria-hidden="true">📋</span> Copy Link
                 </button>
                 <a href="#" class="share-button twitter" id="twitterShare" target="_blank" rel="noopener noreferrer" aria-label="Share on Twitter">
@@ -1006,11 +1062,11 @@
                 multiSelect: true
             },
             frequency: {
-                options: ['Every day', 'Few times/week', 'Weekly', 'Rarely', 'Never'],
+                options: ['Every day', 'Few times/week', 'Weekly', 'Rarely', 'Never', 'Other'],
                 multiSelect: false
             },
             spending: {
-                options: ['$0', '$10-20/mo', '$20-50/mo', '$50+/mo'],
+                options: ['$0 (free tools only)', '$1-20/mo', '$20-50/mo', '$50+/mo', 'Other'],
                 multiSelect: false
             },
             commitment: {
@@ -1024,7 +1080,7 @@
                 multiSelect: false
             },
             role: {
-                options: ['Developer', 'Manager', 'Founder', 'Student', 'Other'],
+                options: ['Developer/Engineer', 'Manager/Team Lead', 'Founder/CTO', 'Student/Learner', 'Other'],
                 multiSelect: false
             }
         };
@@ -1457,33 +1513,162 @@
             const container = document.getElementById('rankingContainer');
             const itemsContainer = document.getElementById('rankingItems');
 
-            const items = ['Cost', 'Quality', 'Privacy', 'Speed', 'Reliability'];
+            const items = [
+                { name: 'Cost', example: 'e.g., subscription price, value for money' },
+                { name: 'Quality', example: 'e.g., accuracy of suggestions, fewer errors' },
+                { name: 'Privacy', example: 'e.g., code not sent to cloud, data protection' },
+                { name: 'Speed', example: 'e.g., fast responses, low latency' },
+                { name: 'Reliability', example: 'e.g., consistent uptime, stable performance' }
+            ];
             itemsContainer.innerHTML = '';
 
             items.forEach((item, index) => {
                 const div = document.createElement('div');
                 div.className = 'ranking-item';
                 div.draggable = true;
-                div.dataset.item = item;
-                div.setAttribute('role', 'button');
-                div.setAttribute('aria-label', `${item}, position ${index + 1}. Drag to reorder.`);
+                div.dataset.item = item.name;
+                div.setAttribute('role', 'listitem');
+                div.setAttribute('aria-label', `${item.name}, position ${index + 1}. Use arrows to reorder.`);
                 div.setAttribute('tabindex', '0');
                 div.innerHTML = `
+                    <div class="ranking-controls">
+                        <button class="rank-btn rank-up" onclick="moveRankingItem(this, 'up')" aria-label="Move ${item.name} up" ${index === 0 ? 'disabled' : ''}>▲</button>
+                        <button class="rank-btn rank-down" onclick="moveRankingItem(this, 'down')" aria-label="Move ${item.name} down" ${index === items.length - 1 ? 'disabled' : ''}>▼</button>
+                    </div>
                     <span class="ranking-number">${index + 1}</span>
-                    <span class="ranking-label">${item}</span>
+                    <div class="ranking-content">
+                        <span class="ranking-label">${item.name}</span>
+                        <span class="ranking-example">${item.example}</span>
+                    </div>
                     <span class="drag-handle" aria-hidden="true">☰</span>
                 `;
 
+                // Desktop drag events
                 div.addEventListener('dragstart', handleDragStart);
                 div.addEventListener('dragover', handleDragOver);
                 div.addEventListener('drop', handleDrop);
                 div.addEventListener('dragend', handleDragEnd);
+
+                // Mobile touch events
+                div.addEventListener('touchstart', handleTouchStart, { passive: false });
+                div.addEventListener('touchmove', handleTouchMove, { passive: false });
+                div.addEventListener('touchend', handleTouchEnd);
+
+                // Keyboard navigation
+                div.addEventListener('keydown', handleRankingKeydown);
 
                 itemsContainer.appendChild(div);
             });
 
             container.style.display = 'block';
             scrollToBottom();
+
+            // Focus first item for keyboard users
+            setTimeout(() => {
+                const firstItem = itemsContainer.querySelector('.ranking-item');
+                if (firstItem) firstItem.focus();
+            }, 100);
+        }
+
+        // Move ranking item up or down (for mobile buttons)
+        function moveRankingItem(button, direction) {
+            const item = button.closest('.ranking-item');
+            const container = document.getElementById('rankingItems');
+            const items = Array.from(container.querySelectorAll('.ranking-item'));
+            const currentIndex = items.indexOf(item);
+
+            if (direction === 'up' && currentIndex > 0) {
+                container.insertBefore(item, items[currentIndex - 1]);
+            } else if (direction === 'down' && currentIndex < items.length - 1) {
+                container.insertBefore(items[currentIndex + 1], item);
+            }
+
+            updateRankingNumbers();
+            updateRankingButtons();
+        }
+
+        // Update button disabled states
+        function updateRankingButtons() {
+            const items = document.querySelectorAll('.ranking-item');
+            items.forEach((item, index) => {
+                const upBtn = item.querySelector('.rank-up');
+                const downBtn = item.querySelector('.rank-down');
+                if (upBtn) upBtn.disabled = index === 0;
+                if (downBtn) downBtn.disabled = index === items.length - 1;
+            });
+        }
+
+        // Keyboard navigation for ranking
+        function handleRankingKeydown(e) {
+            const item = e.currentTarget;
+            const container = document.getElementById('rankingItems');
+            const items = Array.from(container.querySelectorAll('.ranking-item'));
+            const currentIndex = items.indexOf(item);
+
+            if (e.key === 'ArrowUp' && currentIndex > 0) {
+                e.preventDefault();
+                container.insertBefore(item, items[currentIndex - 1]);
+                updateRankingNumbers();
+                updateRankingButtons();
+                item.focus();
+            } else if (e.key === 'ArrowDown' && currentIndex < items.length - 1) {
+                e.preventDefault();
+                container.insertBefore(items[currentIndex + 1], item);
+                updateRankingNumbers();
+                updateRankingButtons();
+                item.focus();
+            }
+        }
+
+        // Touch drag support for mobile
+        let touchStartY = 0;
+        let touchCurrentItem = null;
+        let touchPlaceholder = null;
+
+        function handleTouchStart(e) {
+            // Only handle if touching the drag handle or the item itself (not buttons)
+            if (e.target.classList.contains('rank-btn')) return;
+
+            touchCurrentItem = e.currentTarget;
+            touchStartY = e.touches[0].clientY;
+            touchCurrentItem.classList.add('dragging');
+
+            // Create placeholder
+            touchPlaceholder = document.createElement('div');
+            touchPlaceholder.className = 'ranking-placeholder';
+            touchPlaceholder.style.height = touchCurrentItem.offsetHeight + 'px';
+        }
+
+        function handleTouchMove(e) {
+            if (!touchCurrentItem) return;
+            e.preventDefault();
+
+            const touchY = e.touches[0].clientY;
+            const container = document.getElementById('rankingItems');
+            const items = Array.from(container.querySelectorAll('.ranking-item:not(.dragging)'));
+
+            // Find the item we're hovering over
+            for (const item of items) {
+                const rect = item.getBoundingClientRect();
+                const midY = rect.top + rect.height / 2;
+
+                if (touchY < midY) {
+                    container.insertBefore(touchCurrentItem, item);
+                    break;
+                } else if (item === items[items.length - 1]) {
+                    container.appendChild(touchCurrentItem);
+                }
+            }
+        }
+
+        function handleTouchEnd(e) {
+            if (!touchCurrentItem) return;
+
+            touchCurrentItem.classList.remove('dragging');
+            touchCurrentItem = null;
+
+            updateRankingNumbers();
+            updateRankingButtons();
         }
 
         function showTextInput(aiMessage = '') {
@@ -1492,8 +1677,25 @@
             const input = document.getElementById('otherInput');
             const skipBtn = document.getElementById('otherSkipBtn');
 
-            // Update placeholder for context
-            input.placeholder = 'Type your answer...';
+            // Update placeholder based on question context
+            const msg = aiMessage.toLowerCase();
+            if (msg.includes('pain') || msg.includes('annoy') || msg.includes('frustrat')) {
+                input.placeholder = 'e.g., Slow response times, wrong suggestions, high cost...';
+            } else if (msg.includes('workaround') || msg.includes('practice')) {
+                input.placeholder = 'e.g., I double-check all suggestions, use multiple tools...';
+            } else if (msg.includes('email')) {
+                input.placeholder = 'your@email.com';
+            } else if (msg.includes('name')) {
+                input.placeholder = 'Your name (optional)';
+            } else if (msg.includes('phone')) {
+                input.placeholder = '+1 (555) 123-4567 (optional)';
+            } else if (msg.includes('friend') && msg.includes('email')) {
+                input.placeholder = 'friend@email.com';
+            } else if (msg.includes('why') || msg.includes('reason')) {
+                input.placeholder = 'Tell us why this matters to you...';
+            } else {
+                input.placeholder = 'Type your answer...';
+            }
             input.value = '';
 
             // Check if this is an optional question (like phone number)
@@ -1867,22 +2069,37 @@
             }
         }
 
-        function copyLink() {
+        function copyLink(event) {
             // Use referral link if available, otherwise use regular survey URL
             const linkToCopy = userReferralData && userReferralData.referralCode
                 ? `${SURVEY_URL}?ref=${userReferralData.referralCode}`
                 : SURVEY_URL;
 
+            const button = event ? event.target : document.querySelector('.share-button.copy');
+            const originalText = button.innerHTML;
+
             navigator.clipboard.writeText(linkToCopy).then(() => {
-                const button = event.target;
-                const originalText = button.innerHTML;
                 button.innerHTML = '<span aria-hidden="true">✅</span> Copied!';
                 setTimeout(() => {
                     button.innerHTML = originalText;
                 }, 2000);
             }).catch(err => {
                 console.error('Failed to copy:', err);
-                alert('Failed to copy link. Please copy manually: ' + linkToCopy);
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = linkToCopy;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    button.innerHTML = '<span aria-hidden="true">✅</span> Copied!';
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                    }, 2000);
+                } catch (e) {
+                    alert('Please copy this link: ' + linkToCopy);
+                }
+                document.body.removeChild(textArea);
             });
         }
 
